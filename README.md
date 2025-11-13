@@ -31,7 +31,8 @@ Example:
   <p>You are being redirected...</p>
 </body>
 </html>
-🛠️ How to Deploy
+##🛠️ How to Deploy
+
 Create a new public repository on GitHub.
 
 Upload your index.html file.
@@ -44,12 +45,12 @@ Click Save.
 
 After a few seconds, GitHub will publish your page online.
 
-🧩 Example Use Cases
+##🧩 Example Use Cases
 Redirecting users to an n8n webhook or automation flow.
 
 Creating a custom landing or loading page.
 
 Forwarding visitors to another website or domain.
 
-📄 License
+##📄 License
 This project is open source and free to use.
