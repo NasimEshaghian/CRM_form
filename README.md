@@ -34,7 +34,7 @@ html
 </html>
 
 
-### how to deploy:
+### How To Deploy:
 Create a new public repository on GitHub.
 
 Upload your index.html file.
@@ -47,7 +47,7 @@ Click Save.
 
 After a few seconds, GitHub will publish your page online.
 
-### example use case:
+### Example Use Case:
 Redirecting users to an n8n webhook or automation flow
 
 Creating a custom landing or loading page
