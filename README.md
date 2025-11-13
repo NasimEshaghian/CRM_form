@@ -9,7 +9,7 @@ This repository hosts a simple static HTML page on **GitHub Pages** that automat
 ### 🌐 Live Demo
 Once published via GitHub Pages, your page will be available at:
 
-👉 **https://your-username.github.io/my-redirect-page/**
+👉 **https:///**
 
 *(Replace `your-username` with your actual GitHub username.)*
 
