@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>مدیریت اطلاعات شرکت‌ها و نمایشگاه</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Source Sans 3',sans-serif;background:#f4f6f9;padding:20px}
+.container{max-width:1500px;margin:auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 15px 40px rgba(0,0,0,.12)}
+.header{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:35px;text-align:center}
+.header h1{font-size:2.2em;font-weight:700}
+.form-body{padding:40px}
+
+/* بخش‌های قابل جمع‌شدن */
+.section{
+  background:#fafbff;padding:28px;border-radius:18px;margin-bottom:34px;
+  box-shadow:0 6px 20px rgba(0,0,0,.06);border:1px solid #e2e8f0;
+  transition:all .3s ease;
+}
+.section.collapsed .form-grid{display:none}
+.section h3{
+  margin-bottom:0;color:#1e293b;font-size:1.45em;border-bottom:none;
+  padding:10px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+}
+.toggle-icon{
+  transition:transform .3s ease;font-size:1.1em;color:#6366f1;
+}
+.section.collapsed .toggle-icon{transform:rotate(180deg)}
+
+/* گرید فرم */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+
+/* لیبل */
+label{display:block;margin-bottom:8px;font-weight:600;color:#1e293b;font-size:1em}
+
+/* منوهای کشویی - ارتفاع کمتر + قابلیت تایپ */
+.chosen-container{position:relative;margin-bottom:18px}
+.chosen-trigger{
+  width:100%;padding:12px 46px 12px 16px;border:1px solid #cbd5e1;border-radius:14px;background:#fff;
+  font-size:1.02em;display:flex;flex-wrap:wrap;align-items:center;cursor:pointer;
+  box-shadow:0 4px 12px rgba(0,0,0,.08);transition:all .3s;height:auto;min-height:52px;color:#1e293b;
+  gap:6px;
+}
+.chosen-trigger:hover{border-color:#6366f1;transform:translateY(-1px)}
+.chosen-trigger.open{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,.25)}
+.chosen-placeholder{color:#94a3b8;font-size:0.96em}
+.chosen-arrow i{font-size:0.95em;color:#64748b;transition:transform .3s}
+.chosen-trigger.open .chosen-arrow i{transform:rotate(180deg)}
+.chosen-drop{
+  position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #cbd5e1;border-top:none;
+  border-radius:0 0 14px 14px;max-height:320px;overflow-y:auto;z-index:9999;display:none;
+  box-shadow:0 20px 40px rgba(0,0,0,.18);margin-top:5px
+}
+.chosen-search{padding:12px;border-bottom:1px solid #e2e8f0}
+.chosen-search input{width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:10px;outline:none;font-size:0.96em;color:#1e293b}
+.active-result{padding:13px 18px;cursor:pointer;transition:all .2s;font-size:0.98em;color:#1e293b !important}
+.active-result:hover{background:#eef2ff !important;color:#6366f1 !important;font-weight:600}
+.active-result.selected{background:#6366f1 !important;color:#fff !important;font-weight:700}
+
+/* چیپ‌های چندانتخابی - نمایش ردیفی زیر هم */
+.chosen-trigger .chosen-single-value {
+  display: block !important;
+  margin: 6px 12px 6px 36px;
+  padding: 8px 12px;
+  background: #6366f1;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 0.92em;
+  font-weight: 600;
+  line-height: 1.5;
+  position: relative;
+  width: calc(100% - 48px);
+}
+.chosen-trigger .chosen-single-value i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+/* textarea */
+textarea{
+  width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:14px;resize:vertical;
+  font-family:inherit;font-size:0.98em;height:100px;background:#fff;color:#1e293b;
+}
+
+/* تاریخ */
+.date-field{position:relative}
+.date-field input[type="date"]{
+  width:100%;padding:12px 46px 12px 16px;border:1px solid #cbd5e1;border-radius:14px;font-size:1.02em;height:52px;color:#fff;
+  background:#fff;
+}
+.date-field input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.7;
+  filter: invert(1);
+}
+.date-field .calendar-icon{
+  position:absolute;right:16px;top:50%;transform:translateY(-50%);color:#6366f1;font-size:1.3em;pointer-events:none
+}
+
+/* دکمه آپلود مشترک */
+.upload-wrapper{
+  position:relative;display:inline-block;cursor:pointer;margin-top:6px;
+}
+.upload-wrapper input[type=file]{
+  position:absolute;inset:0;opacity:0;cursor:pointer;
+}
+.upload-btn{
+  display:inline-block;background:#6366f1;color:#fff;padding:10px 24px;border-radius:12px;
+  font-weight:600;font-size:0.96em;transition:all .3s;box-shadow:0 4px 15px rgba(99,102,241,.4);
+  display:flex;align-items:center;gap:8px;
+}
+.upload-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(99,102,241,.5)}
+.upload-btn i{font-size:1.1em;}
+
+#logo-preview img, #attachment-preview img{
+  max-width:220px;margin-top:12px;border-radius:16px;box-shadow:0 8px 25px rgba(0,0,0,.15);border:3px solid #6366f1;
+}
+
+/* دکمه‌های پایین */
+.form-actions{
+  display:flex;gap:16px;justify-content:center;margin-top:50px;flex-wrap:wrap;
+}
+.btn{
+  padding:14px 38px;border:none;border-radius:16px;font-size:1.15em;font-weight:700;
+  cursor:pointer;transition:all .4s;box-shadow:0 8px 25px rgba(0,0,0,.15);
+}
+.btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;}
+.btn-primary:hover{transform:translateY(-4px);box-shadow:0 15px 35px rgba(99,102,241,.6)}
+.btn-secondary{background:#e2e8f0;color:#1e293b;}
+.btn-secondary:hover{background:#cbd5e1;transform:translateY(-3px)}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"><h1>سیستم مدیریت نمایشگاه و بازاریابی</h1></div>
+  <div class="form-body">
+    <form id="mainForm">
+      <!-- ۱. اطلاعات شرکت -->
+      <div class="section" id="section-company">
+        <h3>اطلاعات شرکت <i class="fas fa-chevron-down toggle-icon"></i></h3>
+        <div class="form-grid">
+
+          <div>
+            <label>گروه <span style="color:red">*</span></label>
+            <div class="chosen-container" data-name="group" data-required="true">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                
+
+<ul class="chosen-results">
+  <li class="active-result" data-value="مرکز همایش‌های بین‌المللی برج میلاد تهران">مرکز همایش‌های بین‌المللی برج میلاد تهران</li>
+  <li class="active-result" data-value="نمایشگاه بین‌المللی تهران">نمایشگاه بین‌المللی تهران</li>
+  <li class="active-result" data-value="مرکز همایش‌های بین‌المللی صدا و سیما">مرکز همایش‌های بین‌المللی صدا و سیما</li>
+  <li class="active-result" data-value="مرکز همایش‌های رازی">مرکز همایش‌های رازی</li>
+  <li class="active-result" data-value="مرکز همایش‌های بین‌المللی ایران مال">مرکز همایش‌های بین‌المللی ایران مال</li>
+  <li class="active-result" data-value="نمایشگاه بین‌المللی شهر آفتاب">نمایشگاه بین‌المللی شهر آفتاب</li>
+  <li class="active-result" data-value="نمایشگاه بین‌المللی مشهد">نمایشگاه بین‌المللی مشهد</li>
+  <li class="active-result" data-value="نمایشگاه بین‌المللی اصفهان">نمایشگاه بین‌المللی اصفهان</li>
+  <li class="active-result" data-value="نمایشگاه بین‌المللی شیراز">نمایشگاه بین‌المللی شیراز</li>
+  <li class="active-result" data-value="نمایشگاه بین‌المللی تبریز">نمایشگاه بین‌المللی تبریز</li>
+</ul>
+
+
+              </div>
+              <input type="hidden" name="group" value="">
+            </div>
+          </div>
+
+          <div>
+            <label>نام شرکت <span style="color:red">*</span></label>
+            <div class="chosen-container" data-name="company_name" data-required="true">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="company_name" value="">
+            </div>
+          </div>
+
+          <div style="grid-column:1/-1">
+            <label>توضیحات شخصی اپراتور</label>
+            <textarea name="operator_notes"></textarea>
+          </div>
+
+          <div><label>شناسه ملی</label>
+            <div class="chosen-container" data-name="national_id">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="national_id" value="">
+            </div>
+          </div>
+          <div><label>شماره ثبت</label>
+            <div class="chosen-container" data-name="registration_number">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="registration_number" value="">
+            </div>
+          </div>
+          <div><label>شماره اقتصادی <span style="color:red">*</span></label>
+            <div class="chosen-container" data-name="economic_number" data-required="true">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="economic_number" value="">
+            </div>
+          </div>
+          <div><label>کد کارگاهی</label>
+            <div class="chosen-container" data-name="workshop_code">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="workshop_code" value="">
+            </div>
+          </div>
+          <div><label>کد پستی</label>
+            <div class="chosen-container" data-name="postal_code">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="postal_code" value="">
+            </div>
+          </div>
+          <div><label>شماره تلفن</label>
+            <div class="chosen-container" data-name="phone_number">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="phone_number" value="">
+            </div>
+          </div>
+          <div><label>شماره نمابر</label>
+            <div class="chosen-container" data-name="fax_number">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="fax_number" value="">
+            </div>
+          </div>
+          <div><label>وب‌سایت</label>
+            <div class="chosen-container" data-name="website">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="website" value="">
+            </div>
+          </div>
+          <div><label>ایمیل</label>
+            <div class="chosen-container" data-name="email">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="email" value="">
+            </div>
+          </div>
+
+          <!-- مدیران -->
+          <div><label>مدیرعامل</label>
+            <div class="chosen-container" data-name="ceo_name">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="ceo_name" value="">
+            </div>
+          </div>
+          <div><label>همراه مدیرعامل</label>
+            <div class="chosen-container" data-name="ceo_mobile">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="ceo_mobile" value="">
+            </div>
+          </div>
+          <div><label>مسئول دفتر</label>
+            <div class="chosen-container" data-name="office_manager">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="office_manager" value="">
+            </div>
+          </div>
+          <div><label>تلفن مسئول دفتر</label>
+            <div class="chosen-container" data-name="office_manager_phone">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="office_manager_phone" value="">
+            </div>
+          </div>
+          <div><label>مدیر فروش</label>
+            <div class="chosen-container" data-name="sales_manager">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="sales_manager" value="">
+            </div>
+          </div>
+          <div><label>تلفن مدیر فروش</label>
+            <div class="chosen-container" data-name="sales_manager_phone">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="sales_manager_phone" value="">
+            </div>
+          </div>
+          <div><label>مدیر ارتباطات</label>
+            <div class="chosen-container" data-name="communication_manager">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="communication_manager" value="">
+            </div>
+          </div>
+          <div><label>تلفن مدیر ارتباطات</label>
+            <div class="chosen-container" data-name="communication_manager_phone">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="communication_manager_phone" value="">
+            </div>
+          </div>
+          <div><label>مدیر واحد نمایشگاه</label>
+            <div class="chosen-container" data-name="exhibition_manager">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="exhibition_manager" value="">
+            </div>
+          </div>
+          <div><label>تلفن مدیر واحد نمایشگاه</label>
+            <div class="chosen-container" data-name="exhibition_manager_phone">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="exhibition_manager_phone" value="">
+            </div>
+          </div>
+          <div><label>رابط <span style="color:red">*</span></label>
+            <div class="chosen-container" data-name="liaison" data-required="true">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="liaison" value="">
+            </div>
+          </div>
+          <div><label>سمت رابط</label>
+            <div class="chosen-container" data-name="liaison_position">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="liaison_position" value="">
+            </div>
+          </div>
+          <div><label>همراه رابط <span style="color:red">*</span></label>
+            <div class="chosen-container" data-name="liaison_mobile" data-required="true">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="liaison_mobile" value="">
+            </div>
+          </div>
+
+          <div><label>زمینه فعالیت <span style="color:red">*</span></label>
+            <div class="chosen-container" data-name="activity_field" data-required="true" multiple>
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="activity_field" value="">
+            </div>
+          </div>
+          <div><label>فعالیت شاخص</label>
+            <div class="chosen-container" data-name="main_activity">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="main_activity" value="">
+            </div>
+          </div>
+
+          <div style="grid-column:1/-1"><label>آدرس</label><textarea name="address"></textarea></div>
+
+          <div style="grid-column:1/-1">
+            <label>لوگو</label>
+            <div class="upload-wrapper">
+              <input name="logo" type="file" accept="image/*" id="logo-input">
+              <div class="upload-btn">انتخاب لوگو</div>
+            </div>
+            <div id="logo-preview"><small>لوگو پس از انتخاب شرکت یا آپلود نمایش داده می‌شود</small></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ۲. اطلاعات غرفه -->
+      <div class="section" id="section-booth">
+        <h3>اطلاعات غرفه <i class="fas fa-chevron-down toggle-icon"></i></h3>
+        <div class="form-grid">
+          <div><label>متراژ غرفه</label>
+            <div class="chosen-container" data-name="booth_area">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="booth_area" value="">
+            </div>
+          </div>
+          <div><label>کد غرفه</label>
+            <div class="chosen-container" data-name="booth_code">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="booth_code" value="">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ۳. اطلاعات نمایشگاه -->
+      <div class="section" id="section-expo">
+        <h3>اطلاعات نمایشگاه <i class="fas fa-chevron-down toggle-icon"></i></h3>
+        <div class="form-grid">
+          <div><label>سال برگزاری <span style="color:red">*</span></label>
+            <div class="chosen-container" data-name="expo_year" data-required="true">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results">
+                  <li class="active-result" data-value="1400">1400</li>
+                  <li class="active-result" data-value="1401">1401</li>
+                  <li class="active-result" data-value="1402">1402</li>
+                  <li class="active-result" data-value="1403">1403</li>
+                  <li class="active-result" data-value="1404">1404</li>
+                  <li class="active-result" data-value="1405">1405</li>
+                  <li class="active-result" data-value="1406">1406</li>
+                  <li class="active-result" data-value="1407">1407</li>
+                  <li class="active-result" data-value="1408">1408</li>
+                  <li class="active-result" data-value="1409">1409</li>
+                  <li class="active-result" data-value="1410">1410</li>
+                </ul>
+              </div>
+              <input type="hidden" name="expo_year" value="">
+            </div>
+          </div>
+          <div><label>برگزارکننده <span style="color:red">*</span></label>
+            <div class="chosen-container" data-name="organizer" data-required="true">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="organizer" value="">
+            </div>
+          </div>
+          <div><label>مکان برگزاری <span style="color:red">*</span></label>
+            <div class="chosen-container" data-name="location" data-required="true">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results">
+                  <li class="active-result" data-value="نمایشگاه بین‌المللی تهران">نمایشگاه بین‌المللی تهران</li>
+                  <li class="active-result" data-value="نمایشگاه بین‌المللی شهر آفتاب">نمایشگاه بین‌المللی شهر آفتاب</li>
+                  <li class="active-result" data-value="مصلی امام خمینی تهران">مصلی امام خمینی تهران</li>
+                  <li class="active-result" data-value="نمایشگاه بین‌المللی مشهد">نمایشگاه بین‌المللی مشهد</li>
+                  <li class="active-result" data-value="نمایشگاه بین‌المللی اصفهان">نمایشگاه بین‌المللی اصفهان</li>
+                  <li class="active-result" data-value="نمایشگاه بین‌المللی تبریز">نمایشگاه بین‌المللی تبریز</li>
+                  <li class="active-result" data-value="نمایشگاه بین‌المللی شیراز">نمایشگاه بین‌المللی شیراز</li>
+                  <li class="active-result" data-value="نمایشگاه بین‌المللی قم">نمایشگاه بین‌المللی قم</li>
+                  <li class="active-result" data-value="نمایشگاه بین‌المللی اهواز">نمایشگاه بین‌المللی اهواز</li>
+                  <li class="active-result" data-value="نمایشگاه بین‌المللی کرمان">نمایشگاه بین‌المللی کرمان</li>
+                </ul>
+              </div>
+              <input type="hidden" name="location" value="">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ۴. اطلاعات بازاریابی -->
+      <div class="section" id="section-marketing">
+        <h3>اطلاعات بازاریابی <i class="fas fa-chevron-down toggle-icon"></i></h3>
+        <div class="form-grid">
+          <div><label>مسئول بازاریابی</label>
+            <div class="chosen-container" data-name="marketing_manager">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="marketing_manager" value="">
+            </div>
+          </div>
+            <div><label>تاریخ شروع بازاریابی</label>
+              <div class="date-field">
+                <input name="marketing_start_date" type="date"
+                  style="background-color:#333; 
+                  color:#fff; 
+                  border:1px solid #222; 
+                  border-radius:12px; 
+                  padding:6px 12px; 
+                  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); 
+                  transition: all 0.2s ease;"
+           onmouseover="this.style.backgroundColor='#444'; this.style.borderColor='#555'; this.style.boxShadow='inset 0 1px 5px rgba(0,0,0,0.5)';"
+           onmouseout="this.style.backgroundColor='#333'; this.style.borderColor='#222'; this.style.boxShadow='inset 0 1px 3px rgba(0,0,0,0.3)';">
+    <span class="calendar-icon"><i class="far fa-calendar-alt" style="color:#fff;"></i></span>
+  </div>
+</div>
+
+          <div><label>نحوه تماس</label>
+            <div class="chosen-container" data-name="contact_method">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="contact_method" value="">
+            </div>
+          </div>
+<div>
+  <label>تاریخ تماس</label>
+  <div class="date-field">
+    <input name="marketing_start_date" type="date"
+           style="background-color:#333; 
+                  color:#fff; 
+                  border:1px solid #222; 
+                  border-radius:12px; 
+                  padding:6px 12px; 
+                  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); 
+                  transition: all 0.2s ease;"
+           onmouseover="this.style.backgroundColor='#444'; this.style.borderColor='#555'; this.style.boxShadow='inset 0 1px 5px rgba(0,0,0,0.5)';"
+           onmouseout="this.style.backgroundColor='#333'; this.style.borderColor='#222'; this.style.boxShadow='inset 0 1px 3px rgba(0,0,0,0.3)';">
+    <span class="calendar-icon"><i class="far fa-calendar-alt" style="color:#fff;"></i></span>
+  </div>
+</div>
+
+          <div><label>مخاطب</label>
+            <div class="chosen-container" data-name="contact_person">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="contact_person" value="">
+            </div>
+          </div>
+          <div style="grid-column:1/-1"><label>نکات نحوه تماس</label><textarea name="contact_notes"></textarea></div>
+
+          <!-- پیوست -->
+          <div>
+            <label>پیوست</label>
+            <div class="upload-wrapper">
+              <input type="file" name="attachment" accept=".pdf,.jpg,.png,.docx,.jpeg" id="attachment-input">
+              <div class="upload-btn">انتخاب فایل</div>
+            </div>
+            <div id="attachment-preview"><small>فایل انتخاب نشده</small></div>
+          </div>
+
+          <div><label>وضعیت</label>
+            <div class="chosen-container" data-name="status">
+              <div class="chosen-trigger"><span class="chosen-placeholder">انتخاب یا تایپ کنید</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div></div>
+              <div class="chosen-drop">
+                <div class="chosen-search"><input type="text" placeholder="جستجو یا اضافه کردن..."></div>
+                <ul class="chosen-results"></ul>
+              </div>
+              <input type="hidden" name="status" value="">
+            </div>
+          </div>
+          <div style="grid-column:1/-1"><label>نکات وضعیت</label><textarea name="status_notes"></textarea></div>
+          <div style="grid-column:1/-1"><label>توضیحات بازاریابی</label><textarea name="marketing_description"></textarea></div>
+          <div>
+  <label>تاریخ پیگیری مجدد</label>
+  <div class="date-field">
+    <input name="marketing_start_date" type="date"
+           style="background-color:#333; 
+                  color:#fff; 
+                  border:1px solid #222; 
+                  border-radius:12px; 
+                  padding:6px 12px; 
+                  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); 
+                  transition: all 0.2s ease;"
+           onmouseover="this.style.backgroundColor='#444'; this.style.borderColor='#555'; this.style.boxShadow='inset 0 1px 5px rgba(0,0,0,0.5)';"
+           onmouseout="this.style.backgroundColor='#333'; this.style.borderColor='#222'; this.style.boxShadow='inset 0 1px 3px rgba(0,0,0,0.3)';">
+    <span class="calendar-icon"><i class="far fa-calendar-alt" style="color:#fff;"></i></span>
+  </div>
+</div>
+
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">ذخیره اطلاعات</button>
+        <button type="reset" class="btn btn-secondary">پاک‌سازی فرم</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// جمع/باز کردن بخش‌ها
+document.querySelectorAll('.section h3').forEach(h => {
+  h.addEventListener('click', () => {
+    h.parentElement.classList.toggle('collapsed');
+  });
+});
+
+// منوهای کشویی با قابلیت تایپ
+document.querySelectorAll('.chosen-container').forEach(c => {
+  const trigger = c.querySelector('.chosen-trigger');
+  const drop = c.querySelector('.chosen-drop');
+  const search = c.querySelector('.chosen-search input');
+  const results = c.querySelector('.chosen-results');
+  const hidden = c.querySelector('input[type="hidden"]');
+  const placeholder = c.querySelector('.chosen-placeholder');
+
+  trigger.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = drop.style.display === 'block';
+    document.querySelectorAll('.chosen-drop').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.chosen-trigger').forEach(t => t.classList.remove('open'));
+    drop.style.display = open ? 'none' : 'block';
+    trigger.classList.toggle('open', !open);
+    search && search.focus();
+  });
+
+  if (search) {
+    search.addEventListener('input', () => {
+      const term = search.value.trim().toLowerCase();
+      results.querySelectorAll('.active-result').forEach(li => {
+        li.style.display = li.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+      });
+    });
+
+    // قابلیت افزودن مقدار جدید با Enter
+    search.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const val = search.value.trim();
+        if (val && !Array.from(results.children).some(li => li.textContent === val)) {
+          const li = document.createElement('li');
+          li.className = 'active-result';
+          li.textContent = val;
+          li.dataset.value = val;
+          results.appendChild(li);
+        }
+        selectValue(val);
+      }
+    });
+  }
+
+  const selectValue = val => {
+    if (!val) return;
+    if (c.hasAttribute('multiple')) {
+      // حالت چندانتخابی برای زمینه فعالیت
+      const selected = hidden.value ? hidden.value.split(',').map(s => s.trim()) : [];
+      if (!selected.includes(val)) {
+        selected.push(val);
+        hidden.value = selected.join(',');
+
+        const chip = document.createElement('div');
+        chip.className = 'chosen-single-value';
+        chip.textContent = val;
+
+        const remove = document.createElement('i');
+        remove.className = 'fas fa-times';
+        remove.style.marginRight = '8px';
+        remove.style.cursor = 'pointer';
+        remove.onclick = (e) => {
+          e.stopPropagation();
+          const idx = selected.indexOf(val);
+          if (idx > -1) selected.splice(idx, 1);
+          hidden.value = selected.join(',');
+          chip.remove();
+          if (selected.length === 0) placeholder.style.display = 'block';
+        };
+        chip.prepend(remove);
+
+        const arrow = trigger.querySelector('.chosen-arrow');
+        trigger.insertBefore(chip, arrow);
+        placeholder.style.display = 'none';
+      }
+    } else {
+      hidden.value = val;
+      trigger.innerHTML = `<span class="chosen-single-value">${val}</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div>`;
+      placeholder.style.display = 'none';
+    }
+    drop.style.display = 'none';
+    trigger.classList.remove('open');
+    if (c.dataset.name === 'company_name') loadCompanyData(val);
+  };
+
+  results.addEventListener('click', e => {
+    if (e.target.classList.contains('active-result')) {
+      selectValue(e.target.dataset.value);
+    }
+  });
+
+  document.addEventListener('click', () => {
+    drop.style.display = 'none';
+    trigger.classList.remove('open');
+  });
+});
+
+// پیش‌نمایش لوگو
+document.getElementById('logo-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('logo-preview').innerHTML = `<img src="${ev.target.result}" alt="پیش‌نمایش لوگو">`;
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+// پیش‌نمایش پیوست
+document.getElementById('attachment-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  const preview = document.getElementById('attachment-preview');
+  if (file) {
+    preview.innerHTML = `<i class="fas fa-file-alt" style="color:#6366f1;margin-left:8px"></i><strong>${file.name}</strong> <small style="color:#64748b">(${(file.size/1024).toFixed(1)} KB)</small>`;
+  } else {
+    preview.innerHTML = '<small>فایل انتخاب نشده</small>';
+  }
+});
+
+// پر کردن خودکار اطلاعات شرکت
+async function loadCompanyData(name) {
+  try {
+    const res = await fetch('http://localhost:5678/webhook/get-company-full-data', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({company_name: name})
+    });
+    const json = await res.json();
+    const r = json[0]?.result || {};
+    const set = (field, val) => {
+      const container = document.querySelector(`.chosen-container[data-name="${field}"]`);
+      if (container && val) {
+        const hidden = container.querySelector('input[type="hidden"]');
+        const trigger = container.querySelector('.chosen-trigger');
+        if (container.hasAttribute('multiple')) {
+          const values = val.split(',').map(v => v.trim()).filter(v => v);
+          hidden.value = values.join(',');
+          trigger.innerHTML = '<div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div>';
+          const placeholder = container.querySelector('.chosen-placeholder');
+          placeholder.style.display = 'none';
+          values.forEach(v => {
+            const chip = document.createElement('div');
+            chip.className = 'chosen-single-value';
+            chip.textContent = v;
+            const remove = document.createElement('i');
+            remove.className = 'fas fa-times';
+            remove.style.marginRight = '8px';
+            remove.style.cursor = 'pointer';
+            remove.onclick = (e) => {
+              e.stopPropagation();
+              const selected = hidden.value.split(',').map(s => s.trim()).filter(s => s !== v);
+              hidden.value = selected.join(',');
+              chip.remove();
+              if (selected.length === 0) placeholder.style.display = 'block';
+            };
+            chip.prepend(remove);
+            trigger.insertBefore(chip, trigger.querySelector('.chosen-arrow'));
+          });
+        } else {
+          hidden.value = val;
+          trigger.innerHTML = `<span class="chosen-single-value">${val}</span><div class="chosen-arrow"><i class="fas fa-chevron-down"></i></div>`;
+          container.querySelector('.chosen-placeholder').style.display = 'none';
+        }
+      }
+    };
+    set('group', r.group);
+    set('national_id', r.national_id);
+    set('ceo_name', r.ceo_name);
+    set('ceo_mobile', r.ceo_mobile);
+    set('office_manager', r.office_manager);
+    set('booth_area', r.booth_area);
+    set('booth_code', r.booth_code);
+    set('expo_year', r.expo_year);
+    set('organizer', r.organizer);
+    set('location', r.location);
+    set('marketing_manager', r.marketing_manager);
+    set('contact_method', r.contact_method);
+    set('status', r.status);
+    set('activity_field', r.activity_field);
+    document.querySelector('[name="address"]').value = r.address || '';
+    document.querySelector('[name="marketing_description"]').value = r.marketing_description || '';
+    document.querySelector('[name="marketing_start_date"]').value = r.marketing_start_date || '';
+    if (r.logo_url) {
+      document.getElementById('logo-preview').innerHTML = `<img src="${r.logo_url}" alt="لوگو شرکت">`;
+    }
+  } catch (e) { console.error(e); }
+}
+
+// پر کردن منوها از n8n
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res = await fetch('http://localhost:5678/webhook/get-form-options');
+    if (!res.ok) throw new Error('n8n در دسترس نیست');
+    const json = await res.json();
+    const data = json[0]?.result || {};
+
+    const fill = (name, arr) => {
+      const ul = document.querySelector(`.chosen-container[data-name="${name}"] .chosen-results`);
+      if (!ul) return;
+      ul.innerHTML = '';
+      if (!arr || arr.length === 0) {
+        ul.innerHTML = '<li class="active-result" style="color:#94a3b8;padding:18px">داده‌ای موجود نیست</li>';
+        return;
+      }
+      arr.filter(x => x && x.toString().trim()).sort().forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'active-result';
+        li.textContent = item;
+        li.dataset.value = item;
+        ul.appendChild(li);
+      });
+    };
+
+    fill('group', data.groups);
+    fill('company_name', data.company_names);
+    fill('national_id', data.national_ids);
+    fill('ceo_name', data.ceo_names);
+    fill('ceo_mobile', data.ceo_mobiles);
+    fill('office_manager', data.office_managers);
+    fill('booth_area', data.booth_areas);
+    fill('booth_code', data.booth_codes);
+    // fill(\'expo_year\', data.years); // غیرفعال شد برای نمایش دستی
+    fill('organizer', data.organizers);
+    // fill(\'location\', data.locations); // غیرفعال شد برای نمایش دستی
+    fill('marketing_manager', data.marketing_managers);
+    fill('contact_method', data.contact_methods);
+    fill('status', data.statuses);
+    fill('activity_field', data.activity_fields || []);
+
+    console.log('همه منوها از n8n پر شدند!');
+  } catch (e) {
+    alert('خطا: نمی‌تونم به n8n وصل بشم!\nآدرس: http://localhost:5678/webhook/get-form-options\nآیا n8n روشنه؟');
+    console.error(e);
+  }
+});
+</script>
+</body>
+</html>
